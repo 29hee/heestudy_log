@@ -65,11 +65,17 @@ export class Renderer {
     for (let y = 0; y < state.height; y += 1) {
       for (let x = 0; x < state.width; x += 1) {
         const cell = state.grid[y][x];
-        if (cell === CellType.Owned) {
+        if (cell === CellType.Player1Territory) {
           this.ctx.fillStyle = "rgba(93, 242, 200, 0.85)";
           this.ctx.fillRect(x * cellW, y * cellH, cellW, cellH);
-        } else if (cell === CellType.Trail) {
+        } else if (cell === CellType.Player2Territory) {
+          this.ctx.fillStyle = "rgba(96, 165, 250, 0.75)";
+          this.ctx.fillRect(x * cellW, y * cellH, cellW, cellH);
+        } else if (cell === CellType.Player1Trail) {
           this.ctx.fillStyle = "rgba(250, 204, 21, 0.9)";
+          this.ctx.fillRect(x * cellW, y * cellH, cellW, cellH);
+        } else if (cell === CellType.Player2Trail) {
+          this.ctx.fillStyle = "rgba(94, 234, 212, 0.9)";
           this.ctx.fillRect(x * cellW, y * cellH, cellW, cellH);
         }
       }
@@ -77,7 +83,7 @@ export class Renderer {
 
     for (const p of state.players) {
       if (!p.isAlive) continue;
-      this.ctx.fillStyle = "#f97316";
+      this.ctx.fillStyle = p.color;
       const px = p.x * cellW;
       const py = p.y * cellH;
       this.ctx.beginPath();

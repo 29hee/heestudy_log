@@ -2,8 +2,10 @@
 
 export enum CellType {
   Empty = 0,
-  Owned = 1,
-  Trail = 2,
+  Player1Territory = 1,
+  Player2Territory = 2,
+  Player1Trail = 3,
+  Player2Trail = 4,
 }
 
 export interface Player {
@@ -14,12 +16,14 @@ export interface Player {
   dirY: number;
   isAlive: boolean;
   inTrail: boolean;
+  color: string;
 }
 
 export interface GameState {
   grid: CellType[][];
   players: Player[];
-  phase: "playing" | "win" | "dead";
+  mode: "solo" | "pvp" | null;
+  phase: "mode_select" | "waiting" | "playing" | "win" | "dead";
   tick: number;
   width: number;
   height: number;
