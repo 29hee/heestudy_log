@@ -5,6 +5,10 @@ from app.core.config import BOX, FG, PANEL
 
 
 def build_left_panel(app, middle):
+    """
+    좌측 정보 패널 구축 | Build the left side panel with status info and logs
+    연결 상태(heartbeat/CAN/LIN/UART), 입력 정보, 로그 박스를 배치합니다.\n        Positions connection status rows, input info rows, and scrollable log display on the left side.
+    """
     left = app.style_frame(middle)
     left.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
 

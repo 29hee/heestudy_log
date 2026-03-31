@@ -20,12 +20,20 @@ from app.core.config import (
 
 class DashboardRuntimeLoopMixin:
     def schedule_blink_tick(self):
+        """
+        깜빡이 타이머 스케줄 | Schedule periodic blink tick animation
+        500ms 간격으로 blink_on 플래그를 토글하여 긴급 상태 깜빡임 애니메이션을 구동합니다.\n        Toggles blink_on flag and reschedules itself every 500ms for emergency state blinking.
+        """
         if not self.running:
             return
         self.blink_on = not self.blink_on
         self.root.after(self.blink_interval_ms, self.schedule_blink_tick)
 
     def add_log(self, text, add_to_panel=True, add_to_terminal=True):
+        """
+        로그 메시지 추가 | Add a timestamped log message
+        타임스탬프와 함께 메시지를 로그에 추가하고, 로그박스에 표시(최대 100줄 유지)합니다.\n        Timestamps message, appends to log_lines list (keeps last 100), and updates log_box display.
+        """
         timestamp = time.strftime("%H:%M:%S")
         line = f"{timestamp} {text}"
         if add_to_terminal:
@@ -46,6 +54,10 @@ class DashboardRuntimeLoopMixin:
 
 class DashboardRuntimeViewMixin:
     def update_gui(self):
+        """
+        GUI 상태 동기화 및 렌더링 | Update all UI elements to reflect current state
+        state의 모든 값(heartbeat, mode, ADC, button 등)을 읽어 UI 위젯을 갱신하고, 100ms마다 재호출합니다.\n        Syncs all UI widgets with state values, applies color maps for visual feedback, reschedules itself.
+        """
         left_px = self.heartbeat_row.winfo_width()
         if left_px <= 1:
             left_px = 300
@@ -124,6 +136,10 @@ class DashboardRuntimeViewMixin:
 
 class DashboardRuntimeWindowMixin:
     def on_window_resize(self, event):
+        """
+        윈도우 리사이징 핸들러 | Handle window resize events
+        새 크기에 따라 스케일을 계산하고 3% 이상 변화 시 apply_scaled_styles를 호출하여 폰트/패딩을 조정합니다.\n        Recalculates scale factor from window dimensions and triggers responsive font/padding updates.
+        """
         if event.widget != self.root:
             return
 
@@ -138,6 +154,10 @@ class DashboardRuntimeWindowMixin:
         self.apply_scaled_styles(scale)
 
     def apply_scaled_styles(self, scale):
+        """
+        스케일에 따라 폰트 및 패딩 조정 | Apply responsive font sizes and padding based on scale
+        scale 계수에 따라 모든 폰트 크기와 UI 요소의 패딩을 동적으로 조정합니다 (0.8x ~ 1.8x). \n        Scales all fonts and padding values (padx, pady) to maintain proportional UI at different window sizes.
+        """
         self.font_title.configure(size=max(13, int(round(17 * scale))))
         self.font_section.configure(size=max(10, int(round(13 * scale))))
         self.font_label.configure(size=max(9, int(round(12 * scale))))
@@ -183,6 +203,10 @@ class DashboardRuntimeWindowMixin:
         self.mode_label.pack_configure(pady=(0, mode_gap))
 
     def on_close(self):
+        """
+        윈도우 종료 핸들러 | Handle window close/cleanup
+        running 플래그 비활성화, 파일/시리얼 연결 해제, tkinter 정리 후 프로세스 종료합니다.\n        Gracefully shuts down all readers, cleans up tkinter, and exits application.
+        """
         self.running = False
         if self.file_mode_active:
             self.stop_file_fallback_mode()

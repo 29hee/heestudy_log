@@ -5,6 +5,10 @@ from app.ui.gauge_widget import AdcGaugeWidget
 
 
 def build_status_panel(app, middle):
+    """
+    우측 상태 표시 패널 구축 | Build the right side status display panel
+    ADC 게이지, 안전 레벨/락 배지, 모드 상태, 하단 요약 정보를 배치합니다.\n        Displays ADC value/gauge, safety level badge, lock badge, mode display, and bottom status bar.
+    """
     right = app.style_frame(middle)
     right.grid(row=0, column=1, sticky="nsew")
 

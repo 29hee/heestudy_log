@@ -4,6 +4,10 @@ from app.core.config import BG, DEFAULT_BAUDRATE, PANEL
 
 
 def build_top_controls(app):
+    """
+    상단 제어 패널 구축 | Build the top control bar with port/mode/baud settings
+    제목, 포트 선택, 모드 선택, 보드레이트 입력, 포트 갱신/연결/연결 해제 버튼을 배치합니다.\n        Builds title, serial mode dropdown, port dropdown, baud rate entry, and control buttons.
+    """
     title = app.style_label(
         app.root,
         text="MCU Monitor Dashboard",

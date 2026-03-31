@@ -15,14 +15,26 @@ from app.parser.parsers import (
 
 class DashboardParseApplyMixin:
     def apply_mode_pattern(self, mode_value):
+        """
+        모드 상태 적용 | Apply parsed mode value to state
+        normal, emergency 값을 state.mode에 저장합니다.\n        Updates state.mode with parsed mode from received data.
+        """
         if mode_value in {"normal", "emergency"}:
             self.state.mode = mode_value.upper()
 
     def apply_button_pattern(self, button_value):
+        """
+        버튼 상태 적용 | Apply parsed button status to state
+        approved, denied, ok, waiting 값을 state.button_status에 저장합니다.\n        Updates state.button_status with parsed button status.
+        """
         if button_value in {"approved", "denied", "ok", "waiting"}:
             self.state.button_status = button_value
 
     def apply_adc_pattern(self, adc_value=None, adc_level=None, lock_value=None, update_adc_value=True):
+        """
+        ADC 상태 적용 | Apply parsed ADC data to state
+        ADC 값, 레벨, 락 상태를 state에 저장하고, classify_adc_level로 자동 분류합니다.\n        Parses ADC numeric value, determines safety level, and updates lock state.
+        """
         parsed_adc = None
         if adc_value is not None:
             try:
@@ -45,6 +57,10 @@ class DashboardParseApplyMixin:
 
 class DashboardParseLineMixin(DashboardParseApplyMixin):
     def parse_line(self, line, source="UART"):
+        """
+        한 줄 데이터 파싱 및 상태 업데이트 | Parse a single line and update dashboard state
+        줄을 정제한 후 섹션 헤더 인식, 현재 섹션에 맞춰 패턴 매칭 및 apply 함수 호출합니다.\n        Extracts state info (mode, button, ADC, connection status, input) and dispatches to apply methods.
+        """
         line = clean_line(line)
         if not line:
             return

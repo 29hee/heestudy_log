@@ -5,6 +5,10 @@ from app.ui.layout_sections import build_left_panel, build_status_panel, build_t
 
 
 def build_ui(app):
+    """
+    전체 UI 레이아웃 구축 | Build the complete dashboard UI layout
+    상단 제어 패널, 좌측 상태 패널, 우측 상태 표시 패널을 순서대로 조립합니다.\n    Orchestrates top controls, left panel, and status panel builders into the main window.
+    """
     build_top_controls(app)
 
     middle = tk.Frame(app.root, bg=BG)
