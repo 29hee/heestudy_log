@@ -49,7 +49,7 @@ def parse_adc_payload(payload):
         adc_match = re.search(r"^\s*(-?\d+)", payload)
 
     level_match = re.search(r"(safe|warning|danger|emergency)", payload, re.IGNORECASE)
-    lock_match = re.search(r"lock\s*=\s*([01])", payload, re.IGNORECASE)
+    lock_match = re.search(r"lock\s*[:=]\s*([01])", payload, re.IGNORECASE)
 
     adc_value = adc_match.group(1) if adc_match else None
     adc_level = level_match.group(1).strip().lower() if level_match else None
@@ -123,6 +123,10 @@ def parse_status_line(line):
     lower = line.lower()
     if lower.startswith("mode"):
         return "mode", line.split(":", 1)[1].strip() if ":" in line else line
+    if lower.startswith("can msg"):
+        return "can_msg", line.split(":", 1)[1].strip() if ":" in line else line
+    if lower.startswith("lin msg"):
+        return "lin_msg", line.split(":", 1)[1].strip() if ":" in line else line
     if lower.startswith("button"):
         return "button", line.split(":", 1)[1].strip() if ":" in line else line
     if lower.startswith("adc"):
@@ -135,10 +139,21 @@ def parse_input_line(line):
     입력 섹션 라인 파싱 | Parse lines within [input] section
     from [SOURCE] \"MESSAGE\" 형식의 라인을 파싱하여 입력 출처와 메시지를 추출합니다.\n        Returns (source_str, message_str) or (None, None) if format doesn't match.
     """
+    # Original input format: from [SOURCE] "MESSAGE"
     m = re.match(r"from\s+\[(.+?)\]\s+\"(.*)\"", line, re.IGNORECASE)
-    if not m:
-        return None, None
-    return m.group(1), m.group(2)
+    if m:
+        return m.group(1), m.group(2)
+
+    # Alternate status-like lines (used when firmware prints [Status] block)
+    lower = line.lower()
+    if lower.startswith("mode"):
+        return "mode", line.split(":", 1)[1].strip() if ":" in line else line
+    if lower.startswith("can"):
+        return "can", line.split(":", 1)[1].strip() if ":" in line else line
+    if lower.startswith("lin"):
+        return "lin", line.split(":", 1)[1].strip() if ":" in line else line
+
+    return None, None
 
 __all__ = [
     "classify_adc_level",

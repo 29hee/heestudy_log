@@ -10,9 +10,9 @@ STRICT_REAL_PORT_ONLY = True
 # ADC ranges
 ADC_MIN = 0
 ADC_MAX = 4095
-ADC_SAFE_MAX = 1365
-ADC_WARNING_MAX = 2730
-ADC_DANGER_MAX = 4000
+ADC_SAFE_MAX = 1364
+ADC_WARNING_MAX = 2729
+ADC_DANGER_MAX = 3412
 
 # Theme colors
 BG = "#222222"
@@ -45,8 +45,9 @@ class DashboardState:
     adc_value: str = "2000"
     lock_state: str = "0"
 
-    input_from: str = "CAN"
-    input_message: str = "Button in"
+    input_from: str = "normal"
+    input_can_message: str = "waiting..."
+    input_lin_message: str = "0 (safe, lock=0)"
 
     port_status: str = "Disconnected"
 

@@ -9,7 +9,7 @@ uart : ok / 76300
 [Status]
 Mode : normal
 Button : approved
-ADC : 4000 (safe, lock=1)
+ADC : 1710 (warning, lock=1)
 
 [Input]
 from [CAN] "button in" 

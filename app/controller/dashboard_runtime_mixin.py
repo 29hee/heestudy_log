@@ -19,6 +19,51 @@ from app.core.config import (
 
 
 class DashboardRuntimeLoopMixin:
+    def redraw_log_panel(self):
+        if not hasattr(self, "log_box"):
+            return
+
+        self.log_box.config(state="normal")
+        self.log_box.delete("1.0", tk.END)
+        if self.log_lines:
+            self.log_box.insert(tk.END, "\n".join(self.log_lines))
+
+        self.log_box.tag_remove("selected_line", "1.0", tk.END)
+        self.log_box.tag_config(
+            "selected_line",
+            background="#3a4d63",
+            foreground="#ffffff",
+        )
+
+        if self.log_lines:
+            selected = max(0, min(self.selected_log_line, len(self.log_lines) - 1))
+            self.selected_log_line = selected
+            start = f"{selected + 1}.0"
+            end = f"{selected + 1}.end"
+            self.log_box.tag_add("selected_line", start, end)
+            self.log_box.see(start)
+
+        self.log_box.config(state="disabled")
+
+    def on_log_click(self, event):
+        if not self.log_entries:
+            return
+
+        idx = self.log_box.index(f"@{event.x},{event.y}")
+        line_no = int(idx.split(".")[0]) - 1
+        if line_no < 0 or line_no >= len(self.log_entries):
+            return
+
+        self.selected_log_line = line_no
+        entry = self.log_entries[line_no]
+        step_key = entry.get("flow_step")
+        detail = entry.get("flow_detail", "")
+
+        if step_key in getattr(self, "flow_step_labels", {}):
+            self.set_flow_step(step_key, f"[JUMP] {detail}" if detail else "[JUMP] selected log")
+
+        self.redraw_log_panel()
+
     def schedule_blink_tick(self):
         """
         깜빡이 타이머 스케줄 | Schedule periodic blink tick animation
@@ -44,12 +89,16 @@ class DashboardRuntimeLoopMixin:
 
         self.log_lines.append(line)
         self.log_lines = self.log_lines[-100:]
-
-        self.log_box.config(state="normal")
-        self.log_box.delete("1.0", tk.END)
-        self.log_box.insert(tk.END, "\n".join(self.log_lines))
-        self.log_box.see(tk.END)
-        self.log_box.config(state="disabled")
+        self.log_entries.append(
+            {
+                "line": line,
+                "flow_step": self.flow_current_step,
+                "flow_detail": self.flow_detail_text,
+            }
+        )
+        self.log_entries = self.log_entries[-100:]
+        self.selected_log_line = max(0, len(self.log_lines) - 1)
+        self.redraw_log_panel()
 
 
 class DashboardRuntimeViewMixin:
@@ -68,8 +117,10 @@ class DashboardRuntimeViewMixin:
         self.lin_row.config(text=self.elide_text(self.state.lin_status, max_chars))
         self.uart_row.config(text=self.elide_text(self.state.uart_status, max_chars))
 
-        self.input_from_row.config(text=self.elide_text(self.state.input_from, max_chars))
-        self.input_msg_row.config(text=self.elide_text(self.state.input_message, max_chars))
+        self.status_mode_row.config(text=self.elide_text(self.state.mode, max_chars))
+        self.status_canmsg_row.config(text=self.elide_text(self.state.input_can_message, max_chars))
+        self.status_linmsg_row.config(text=self.elide_text(self.state.input_lin_message, max_chars))
+        self.render_flow_panel()
 
         self.number_label.config(text=self.state.adc_value)
         self.draw_adc_gauge(self.get_adc_numeric())
@@ -120,7 +171,12 @@ class DashboardRuntimeViewMixin:
             "waiting": MUTED,
             "denied": ADC_DANGER_COLOR,
         }
-        self.input_msg_row.config(fg=button_color_map.get(self.state.button_status, MUTED))
+        self.button_label.config(
+            text=self.state.button_status.upper(),
+            bg=button_color_map.get(self.state.button_status, MUTED),
+        )
+        self.status_canmsg_row.config(fg=button_color_map.get(self.state.button_status, MUTED))
+        self.status_linmsg_row.config(fg=button_color_map.get(self.state.button_status, MUTED))
 
         self.bottom_label.config(
             text=(
@@ -170,6 +226,12 @@ class DashboardRuntimeWindowMixin:
         self.font_button.configure(size=max(9, int(round(11 * scale))))
         self.font_status.configure(size=max(9, int(round(11 * scale))))
 
+        if hasattr(self, "flow_step_labels"):
+            for label in self.flow_step_labels.values():
+                label.config(font=self.font_left_content)
+        if hasattr(self, "flow_detail_label"):
+            self.flow_detail_label.config(font=self.font_left_content)
+
         card_padx = max(14, int(round(28 * scale)))
         section_padx = max(10, int(round(18 * scale)))
         section_top = max(8, int(round(14 * scale)))
@@ -192,11 +254,18 @@ class DashboardRuntimeWindowMixin:
         self.adc_gauge_canvas.config(height=gauge_height)
         self.adc_gauge_canvas.pack_configure(padx=section_padx, pady=(0, max(8, number_gap // 2)))
 
-        self.badge_row.pack_configure(pady=(0, max(10, number_gap // 2)))
-        self.level_label.config(width=mode_width, pady=badge_pady)
-        self.level_label.pack_configure(padx=(0, max(8, mode_gap // 2)))
-        self.lock_label.config(width=mode_width, pady=badge_pady)
-        self.lock_label.pack_configure()
+        badge_gap = max(4, mode_gap // 3)
+        self.badge_title_row.pack_configure(padx=section_padx, pady=(0, max(4, section_gap)))
+        self.badge_level_title.grid_configure(padx=(0, badge_gap))
+        self.badge_lock_title.grid_configure(padx=(0, badge_gap))
+        self.badge_button_title.grid_configure(padx=(0, 0))
+        self.badge_row.pack_configure(padx=section_padx, pady=(0, max(10, number_gap // 2)))
+        self.level_label.config(pady=badge_pady)
+        self.level_label.grid_configure(padx=(0, badge_gap))
+        self.lock_label.config(pady=badge_pady)
+        self.lock_label.grid_configure(padx=(0, badge_gap))
+        self.button_label.config(pady=badge_pady)
+        self.button_label.grid_configure(padx=(0, 0))
 
         self.mode_title_label.pack_configure(padx=section_padx, pady=(0, max(6, section_gap)))
         self.mode_label.config(width=mode_width, pady=mode_button_pady)

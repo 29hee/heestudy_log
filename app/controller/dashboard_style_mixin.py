@@ -1,5 +1,6 @@
 """Responsibility: Style module (font/theme helpers) and dashboard bootstrap class."""
 
+import time
 import tkinter as tk
 import tkinter.font as tkfont
 
@@ -170,6 +171,29 @@ class DashboardStyleMixin:
         except ValueError:
             return DEFAULT_BAUDRATE
 
+    def set_flow_step(self, step_key, detail_text):
+        if not hasattr(self, "flow_step_labels"):
+            return
+        if step_key not in self.flow_step_labels:
+            return
+        self.flow_current_step = step_key
+        self.flow_detail_text = detail_text
+        self.flow_detail_time = time.strftime("%H:%M:%S")
+
+    def render_flow_panel(self):
+        if not hasattr(self, "flow_step_labels"):
+            return
+
+        for key, label in self.flow_step_labels.items():
+            active = key == self.flow_current_step
+            label.config(
+                bg=("#0b4f6c" if active else PANEL),
+                fg=("#ffffff" if active else FG),
+            )
+
+        if hasattr(self, "flow_detail_label"):
+            self.flow_detail_label.config(text=f"{self.flow_detail_time} {self.flow_detail_text}")
+
 
 class StyledDashboard(
     DashboardStyleMixin,
@@ -202,6 +226,11 @@ class StyledDashboard(
         self.port_map = {}
         self.border_widgets = []
         self.log_lines = []
+        self.log_entries = []
+        self.selected_log_line = 0
+        self.flow_current_step = "adc_to_master"
+        self.flow_detail_text = "Waiting UART data..."
+        self.flow_detail_time = "--:--:--"
 
         self.blink_on = True
         self.blink_interval_ms = 500

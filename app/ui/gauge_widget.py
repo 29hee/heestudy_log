@@ -36,7 +36,7 @@ class AdcGaugeWidget(tk.Canvas):
         left = 8
         right = width - 8
 
-        tick_font_size = max(10, int(round(font_section.metrics("linespace") * 0.75)))
+        tick_font_size = max(10, int(round(font_section.metrics("linespace") * 0.65)))
         tick_font = ("Consolas", tick_font_size, "bold")
 
         level_label_h = level_label.winfo_height()
@@ -103,14 +103,36 @@ class AdcGaugeWidget(tk.Canvas):
         ratio = adc_numeric / max(1, ADC_MAX)
         x = left + (right - left) * ratio
         cy = (top + bottom) * 0.5
-        marker_size = max(6, int(round(bar_height * 0.35)))
+        marker_size = max(6, int(round(bar_height * 0.30)))
+
+        # Emblem marker: vertical pin + layered rings + center core.
+        self.create_line(x, top - 4, x, bottom + 4, fill="#8545ed", width=2)
         self.create_oval(
             x - marker_size,
             cy - marker_size,
             x + marker_size,
             cy + marker_size,
-            outline="#ffff00",
-            width=3,
+            outline="#da8fef",
+            width=2,
             fill="",
         )
-        self.create_oval(x - 3, cy - 3, x + 3, cy + 3, outline="#111111", fill="#ffff00", width=1)
+        inner_ring = max(4, marker_size - 6)
+        self.create_oval(
+            x - inner_ring,
+            cy - inner_ring,
+            x + inner_ring,
+            cy + inner_ring,
+            outline="#8545ed",
+            width=2,
+            fill="",
+        )
+        core = max(3, marker_size // 4)
+        self.create_oval(
+            x - core,
+            cy - core,
+            x + core,
+            cy + core,
+            outline="#5f0e0e",
+            fill="#f578c9",
+            width=1,
+        )

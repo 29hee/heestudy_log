@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from app.core.config import ADC_SAFE_COLOR, BG, BORDER, BOX, NORMAL_COLOR
+from app.core.config import ADC_SAFE_COLOR, BG, BORDER, BOX, MUTED, NORMAL_COLOR
 from app.ui.gauge_widget import AdcGaugeWidget
 
 
@@ -37,8 +37,47 @@ def build_status_panel(app, middle):
     app.adc_gauge_canvas = AdcGaugeWidget(app.status_card)
     app.adc_gauge_canvas.pack(fill="x", padx=18, pady=(0, 14))
 
+    app.badge_title_row = tk.Frame(app.status_card, bg=BOX)
+    app.badge_title_row.pack(fill="x", padx=18, pady=(0, 6))
+    app.badge_title_row.grid_columnconfigure(0, weight=1)
+    app.badge_title_row.grid_columnconfigure(1, weight=1)
+    app.badge_title_row.grid_columnconfigure(2, weight=1)
+
+    app.badge_level_title = app.style_label(
+        app.badge_title_row,
+        text="LEVEL",
+        font=app.font_left_content,
+        fg=MUTED,
+        bg=BOX,
+        anchor="center",
+    )
+    app.badge_level_title.grid(row=0, column=0, sticky="ew", padx=(0, 8))
+
+    app.badge_lock_title = app.style_label(
+        app.badge_title_row,
+        text="LOCK",
+        font=app.font_left_content,
+        fg=MUTED,
+        bg=BOX,
+        anchor="center",
+    )
+    app.badge_lock_title.grid(row=0, column=1, sticky="ew", padx=(0, 8))
+
+    app.badge_button_title = app.style_label(
+        app.badge_title_row,
+        text="BUTTON",
+        font=app.font_left_content,
+        fg=MUTED,
+        bg=BOX,
+        anchor="center",
+    )
+    app.badge_button_title.grid(row=0, column=2, sticky="ew")
+
     app.badge_row = tk.Frame(app.status_card, bg=BOX)
-    app.badge_row.pack(anchor="center", pady=(0, 18))
+    app.badge_row.pack(fill="x", padx=18, pady=(0, 18))
+    app.badge_row.grid_columnconfigure(0, weight=1)
+    app.badge_row.grid_columnconfigure(1, weight=1)
+    app.badge_row.grid_columnconfigure(2, weight=1)
 
     app.level_label = tk.Label(
         app.badge_row,
@@ -46,10 +85,9 @@ def build_status_panel(app, middle):
         font=app.font_mode,
         fg="white",
         bg=ADC_SAFE_COLOR,
-        width=8,
         pady=4,
     )
-    app.level_label.pack(side="left", padx=(0, 16))
+    app.level_label.grid(row=0, column=0, sticky="ew", padx=(0, 8))
 
     app.lock_label = tk.Label(
         app.badge_row,
@@ -57,10 +95,19 @@ def build_status_panel(app, middle):
         font=app.font_mode,
         fg="white",
         bg=ADC_SAFE_COLOR,
-        width=8,
         pady=4,
     )
-    app.lock_label.pack(side="left")
+    app.lock_label.grid(row=0, column=1, sticky="ew", padx=(0, 8))
+
+    app.button_label = tk.Label(
+        app.badge_row,
+        text=app.state.button_status.upper(),
+        font=app.font_mode,
+        fg="white",
+        bg=MUTED,
+        pady=4,
+    )
+    app.button_label.grid(row=0, column=2, sticky="ew")
 
     app.mode_title_label = app.style_label(app.status_card, text="MODE", font=app.font_mode_title, bg=BOX)
     app.mode_title_label.pack(anchor="w", padx=18, pady=(0, 8))

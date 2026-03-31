@@ -42,6 +42,7 @@ def build_top_controls(app):
     app.baud_entry.insert(0, str(DEFAULT_BAUDRATE))
     app.baud_entry.pack(side="left", padx=(0, 10))
 
-    app.style_button(row, "refresh ports", app.refresh_ports, 12).pack(side="left", padx=4)
-    app.style_button(row, "connect", app.connect_serial, 10).pack(side="left", padx=4)
-    app.style_button(row, "disconnect", app.disconnect_serial, 10).pack(side="left", padx=4)
+    button_width = 10
+    app.style_button(row, "refresh ports", app.refresh_ports, button_width).pack(side="left", padx=4)
+    app.style_button(row, "connect", app.connect_serial, button_width).pack(side="left", padx=4)
+    app.style_button(row, "disconnect", app.disconnect_serial, button_width).pack(side="left", padx=4)
