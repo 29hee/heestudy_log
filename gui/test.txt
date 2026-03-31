@@ -1,0 +1,20 @@
+[ MASTER NODE ]
+
+[Connetion Status]
+heartbeat : alive / 6490
+can : idle / 4
+lin : polling
+uart : ok / 76300
+
+[Status]
+Mode : normal
+Button : approved
+ADC : 4000 (safe, lock=1)
+
+[Input]
+from [CAN] "button in" 
+from [lin] "adc in : 1000 (safe)"
+
+[Message]
+[lin] safe lock=0 adc=10000
+[Command]
