@@ -1,101 +1,76 @@
-# MCU UART Monitoring Dashboards
+# 통신 프로젝트 README
 
-UART 데이터를 실시간으로 시각화하는 Tkinter 기반 GUI입니다.  
-Serial / File 모드를 지원하며 ADC, Button, Mode 상태를 직관적으로 확인할 수 있습니다.
-## 🚀 TL;DR
+이 폴더는 GUI 프로젝트와 연계된 S32K 통신 펌웨어 구현 보관본입니다.
+실제 소스 루트는 `[final]s32k`입니다.
 
-- UART 데이터를 실시간으로 시각화하는 Tkinter 기반 GUI
-- Serial / File 모드 지원
-- ADC / Button / Mode 상태 모니터링 가능
+## 1) 프로젝트 범위
 
-## 1) ⚙️ 실행 방법
+- 타겟 플랫폼: S32K
+- 실행 모델: cooperative super-loop scheduler
+- 현재 역할 프로파일: master coordinator
+- 시작점: `[final]s32k/main.c`
 
-> OS: Windows
-
-```bash
-cd GUI
-python main.py
-```
-* 실행 진입점: `main.py`
-* 호환 진입점: `new.py`
-
-
-## 2) 🧭 Usage
-
-### Mode 선택
-1. 프로그램을 실행합니다
-2. 창 크기를 원하는 대로 조절합니다
-3. Dropdown에서 모드를 선택합니다 (`Serial` / `File`)
-   * Serial: 실제 UART 연결
-   * File: test.txt 기반 시뮬레이션
----
-
-### Serial 모드
-
-1. 포트 선택
-2. `Connect` 클릭
-3. 데이터 실시간 확인
-4. 옵션:
-   * refresh ports → 포트 재조회
-   * disconnect → 연결 해제
----
-
-### File 모드
-1. `test.txt` 수정
-2. 저장
-3. GUI 자동 반영
-	### 📥 Input Format
-	```BASH
-   # Example:
-	[Status]
-	Mode : normal
-	Button : approved
-	ADC : 4095 (emergency, lock=0)
-	```
-   - 지원 값
-   * Mode: `normal`, `emergency`
-   * Button: `approved`, `denied`, `waiting`, `ok`
-   * ADC:
-     * `숫자`
-     * `safe`, `warning`, `waiting`, `emergency`
-     * `lock=0`, `lock=1`
-
-
-## 3) 📁 Structure (simple)
+## 2) 소스 위치
 
 ```text
-GUI/
-├─ main.py
-├─ new.py
-├─ test.txt
-├─ README.md
-├─ dev.md
-├─ cleaning/
-│  ├─ clean_pycache.ps1
-│  └─ clean_pycache.sh
-└─ app/
-  ├─ core/
-  ├─ parser/
-  ├─ io/
-  ├─ ui/
-  └─ controller/
+archive/
+└─ [final]s32k/
+   ├─ main.c
+   ├─ app/
+   ├─ core/
+   ├─ runtime/
+   ├─ services/
+   ├─ drivers/
+   └─ platform/
 ```
 
-## 4) 🧹 Cache Cleaning
+## 3) 런타임 흐름 (요약)
 
-```pwsh
-# PowerShell
-./cleaning/clean_pycache.ps1 -WhatIf   # 삭제 없이 대상만 확인
-./cleaning/clean_pycache.ps1           # 실제 삭제
+```text
+main.c
+ -> Runtime_Init()
+ -> Runtime_Run()
+ -> RuntimeTask_RunDue() 반복 실행
 ```
 
-권한 오류가 날 경우:
+task 구성과 실행 순서는 `[final]s32k/runtime/runtime.c`에서 관리합니다.
 
-```pwsh
-Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
-Unblock-File -Path .\cleaning\clean_pycache.ps1
-```
+## 4) 모듈 요약
 
-## 5) 개발자 문서
+- `app`: 역할별 앱 로직, 콘솔 표시, task payload
+- `core`: 공통 타입/큐/스케줄러/틱 유틸리티
+- `runtime`: 초기화 순서, task table 구성, 실행 루프
+- `services`: UART/CAN/LIN 서비스 및 프로토콜 처리
+- `drivers`: 보드/주변장치 하드웨어 제어 래퍼
+- `platform`: SDK 및 플랫폼 의존 자산
 
-상세한 파일 구조, 파일별 역할, 유지보수 로드맵은 `simple_dev.md`를 참고해주세요.
+## 5) 빌드/플래시
+
+빌드 및 플래시 절차는 현재 사용 중인 S32K IDE/툴체인 프로젝트 설정을 따릅니다.
+이미 `[final]s32k`를 대상으로 구성된 기존 파이프라인을 사용하세요.
+
+## 6) 문서 안내
+
+- 빠른 운영/수정 가이드: `simple_dev.md`
+- 상세 아키텍처/파일 책임 가이드: `dev.md`
+
+
+# 필요 한 콘텐츠
+시스템 블록 다이어그램
+내용: PC GUI, Master(S32K), Slave 노드, UART/CAN/LIN 연결선
+목적: 전체 통신 토폴로지 한눈에 파악
+런타임 Task 타임라인
+내용: uart / lin_fast / can / lin_poll / render / heartbeat 주기 축(time axis)
+목적: 스케줄 충돌, 지연 원인 설명
+CAN 프레임 예시 표
+내용: command/event/text/response별 ID, payload 의미, source/target
+목적: 디버깅 시 패킷 해석 속도 향상
+LIN 상태 전이도
+내용: normal, warning, danger, emergency, lock 상태 전이 조건
+목적: 정책 로직 이해와 변경 영향 분석
+부팅 시퀀스 다이어그램
+내용: main -> Runtime_Init -> BoardInit -> TickInit -> AppInit -> Hook -> Run
+목적: 초기화 실패 지점 추적
+장애 트러블슈팅 플로우차트
+내용: “증상 -> 1차 확인 파일 -> 2차 확인 파일” 의사결정 트리
+목적: 현장 대응 속도 향상
